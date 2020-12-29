@@ -6,6 +6,7 @@ let
   haskellDeps = ps: with ps; [
     base
     vector
+    regex-pcre
   ];
 
   ghc = haskellPackages.ghcWithPackages haskellDeps;
