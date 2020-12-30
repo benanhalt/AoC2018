@@ -13,7 +13,7 @@ parseClaim s = read <$> head <$> s =~ "[0-9]+"
 
 main :: IO ()
 main = do
-  input <- lines <$> readFile "input3.txt"
+  input <- lines <$> readFile "input.txt"
   let claims = parseClaim <$> input
 
   putStrLn "Part 1:"

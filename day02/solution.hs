@@ -2,7 +2,7 @@ import Control.Monad
 import Data.List
 
 main = do
-  input <- readFile "input2.txt"
+  input <- readFile "input.txt"
   let ids = lines input
   let repeats = ((fmap length) . group . sort) <$> ids
   let twos = filter (any (== 2)) repeats

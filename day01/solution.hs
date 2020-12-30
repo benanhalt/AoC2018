@@ -4,7 +4,7 @@ import qualified Data.Set as S
 
 main :: IO ()
 main = do
-  input <- readFile "input1.txt"
+  input <- readFile "input.txt"
   let vals = (read . dropWhile (== '+')) <$> lines input :: [Int]
   print $ sum $ vals
   print $ solve (cycle vals) 0 S.empty
