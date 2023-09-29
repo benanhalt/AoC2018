@@ -16,9 +16,10 @@ main = do
   input <- lines <$> readFile "input.txt"
   let rules = (\ws -> (ws !! 1, ws !! 7)) <$> words <$> input
   let s = noIncoming rules $ nub $ fst <$> rules
+  putStrLn "Part 1:"
   putStrLn $ concat $ kahn rules s []
-
-
+  putStrLn "Part 2:"
+  print $ kahn' rules s [] 0
 
 -- L ← Empty list that will contain the sorted elements
 -- S ← Set of all nodes with no incoming edge
@@ -36,7 +37,7 @@ main = do
 -- else 
 --     return L   (a topologically sorted order)
 
-kahn :: [(String, String)] -> [String] -> [String] -> [String]
+kahn :: (Ord a) => [(a, a)] -> [a] -> [a] -> [a]
 kahn [] [] l = reverse l
 kahn g [] l = error "graph contains cycle"
 kahn g s l =
@@ -49,5 +50,28 @@ kahn g s l =
   in
     kahn g' s' (n:l)
 
-noIncoming :: [(String, String)] -> [String] -> [String]
+noIncoming :: (Eq a) => [(a, a)] -> [a] -> [a]
 noIncoming g ns = ns \\ (snd <$> g)
+
+
+kahn' :: [(String, String)] -> [String] -> [(String, Int)] -> Int -> Int
+kahn' [] [] [] n = n
+kahn' g [] [] n = error "graph contains cycle"
+kahn' g s w n =
+  let
+    (f, uf) = partition ((== 1) . snd) w -- finished and not
+    fs = fst <$> f -- finished nodes
+    ns = take (5 - length uf) $ sort s -- to start
+    es = filter ((`elem` fs) . fst) g -- edges to remove
+    ms = snd <$> es -- possibly startable nodes
+    g' = g \\ es -- updated graph
+    s' = (noIncoming g' ms) ++ (s \\ ns) -- startable nodes
+    w' = (updateWork <$> uf) ++ (computeWork <$> ns)
+  in
+    kahn' g' s' w' (n+1)
+
+updateWork :: (a, Int) -> (a, Int)
+updateWork (a, w) = (a, w-1)
+
+computeWork :: String -> (String, Int)
+computeWork s = (s, 60 + (ord $ head s) - (ord 'A'))
