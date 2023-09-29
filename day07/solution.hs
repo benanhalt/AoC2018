@@ -14,12 +14,12 @@ import Debug.Trace (traceShow, traceShowId)
 main :: IO ()
 main = do
   input <- lines <$> readFile "input.txt"
-  let rules = (\ws -> (ws !! 1, ws !! 7)) <$> words <$> input
+  let rules = (\ws -> (ws !! 1, ws !! 7)) <$> (map head) <$> words <$> input
   let s = noIncoming rules $ nub $ fst <$> rules
   putStrLn "Part 1:"
-  putStrLn $ concat $ kahn rules s []
+  putStrLn $ kahn rules s []
   putStrLn "Part 2:"
-  print $ kahn' rules s [] 0
+  print $ length $ takeWhile ((/=) finishedState) $ iterate (kahn' 5 computeWork) (rules, s, [])
 
 -- L ← Empty list that will contain the sorted elements
 -- S ← Set of all nodes with no incoming edge
@@ -34,7 +34,7 @@ main = do
 
 -- if graph has edges then
 --     return error   (graph has at least one cycle)
--- else 
+-- else
 --     return L   (a topologically sorted order)
 
 kahn :: (Ord a) => [(a, a)] -> [a] -> [a] -> [a]
@@ -43,7 +43,7 @@ kahn g [] l = error "graph contains cycle"
 kahn g s l =
   let
     n = minimum s
-    es = filter ((==n) . fst) g
+    es = filter ((== n) . fst) g
     ms = snd <$> es
     g' = g \\ es
     s' = (noIncoming g' ms) ++ (delete n s)
@@ -53,25 +53,31 @@ kahn g s l =
 noIncoming :: (Eq a) => [(a, a)] -> [a] -> [a]
 noIncoming g ns = ns \\ (snd <$> g)
 
+type State a =
+  ( [(a, a)] -- graph edges
+  , [a] -- nodes with no incoming edge (startable)
+  , [(a, Int)] -- in-progress nodes w/ remaining work
+  )
 
-kahn' :: [(String, String)] -> [String] -> [(String, Int)] -> Int -> Int
-kahn' [] [] [] n = n
-kahn' g [] [] n = error "graph contains cycle"
-kahn' g s w n =
+finishedState :: State a
+finishedState = ([], [], [])
+
+kahn' :: (Ord a) => Int -> (a -> Int) -> State a -> State a
+kahn' _ _ state | state == finishedState = finishedState -- case is not strictly necessary
+kahn' _ _ (g, [], []) = error "graph contains cycle"
+kahn' ws aw (g, s, w)  =
   let
-    (f, uf) = partition ((== 1) . snd) w -- finished and not
+    (f, uf) = partition ((== 1) . snd) w -- finished and unfinished
     fs = fst <$> f -- finished nodes
-    ns = take (5 - length uf) $ sort s -- to start
+    ns = take (ws - length uf) $ sort s -- to start (workers - unfinished)
     es = filter ((`elem` fs) . fst) g -- edges to remove
     ms = snd <$> es -- possibly startable nodes
     g' = g \\ es -- updated graph
     s' = (noIncoming g' ms) ++ (s \\ ns) -- startable nodes
-    w' = (updateWork <$> uf) ++ (computeWork <$> ns)
+    w' = ((\(a, w) -> (a, w-1)) <$> uf) -- updated work on unfinish
+      ++ ((\a -> (a, aw a)) <$> ns) -- new work on to-start nodes
   in
-    kahn' g' s' w' (n+1)
+    (g', s', w')
 
-updateWork :: (a, Int) -> (a, Int)
-updateWork (a, w) = (a, w-1)
-
-computeWork :: String -> (String, Int)
-computeWork s = (s, 60 + (ord $ head s) - (ord 'A'))
+computeWork :: Char -> Int
+computeWork s = 60 + (ord s) - (ord 'A')
