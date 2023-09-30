@@ -49,7 +49,15 @@ main = do
   putStrLn "Part 1:"
   let trajectory = iterate (step rules) state0
   print $ sum $ trajectory !! 20
-  putStrLn $ unlines $ map display $ take 20 trajectory
-  putStrLn "Part 2:"
 
+  putStrLn "Part 2:"
+  -- By inspection, the pattern begins repeating before 1000 iterations
+  -- except for a left margin that increase by one each step.
+  let state1000 = trajectory !! 1000
+  let ans1000 = sum state1000
+  let leftAt1k = S.findMin state1000
+  let leftAt50B = leftAt1k + 50000000000 - 1000
+  let nPlants = S.size state1000
+  let ans50B = ans1000 - nPlants * leftAt1k + nPlants * leftAt50B
+  print ans50B
 
