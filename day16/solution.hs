@@ -11,7 +11,6 @@ import Data.Vector qualified as V
 import Debug.Trace (traceShow, traceShowId)
 import Text.Regex.PCRE ((=~))
 
-
 type Registers = V.Vector Int
 
 data Sample = Sample
@@ -60,6 +59,18 @@ consistent :: Operation -> Sample -> Bool
 consistent (name, func) Sample {before, instruction, after} =
   after == func (drop 1 instruction) before
 
+solve :: (Eq a) => [[a]] -> [[a]]
+solve ps =
+  let (solved, unsolved) = partition ((== 1) . length) ps
+   in if null unsolved
+        then ps
+        else solve $ map (\p -> if length p > 1 then p \\ concat solved else p) ps
+
+execute :: [(Int, Operation)] -> Registers -> [Int] -> Registers
+execute opTable regs (opCode : operands) =
+  let Just (_, opFunc) = lookup opCode opTable
+   in opFunc operands regs
+
 main :: IO ()
 main = do
   input <- lines <$> readFile "input.txt"
@@ -67,3 +78,7 @@ main = do
   putStrLn "Part 1:"
   print $ length $ filter (>= 3) $ map (\s -> length $ filter (`consistent` s) operations) samples
   putStrLn "Part 2:"
+  let instructions :: [[Int]] = map read . words <$> drop 3230 input
+  let possibilities = map (\o -> nub $ map (head . instruction) $ filter (consistent o) samples) operations
+  let opTable = zip (concat $ solve possibilities) operations
+  print $ foldl' (execute opTable) (V.fromList [0, 0, 0, 0]) instructions
