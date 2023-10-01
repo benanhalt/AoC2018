@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, NamedFieldPuns, DeriveFoldable #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Monad (guard)
 import Data.List
@@ -43,7 +43,7 @@ display state =
 main :: IO ()
 main = do
   input <- lines <$> readFile "input.txt"
-  let initState = (words $ head input) !! 2
+  let initState = words (head input) !! 2
   let state0 = S.fromList $ map fst $ filter ((== '#') . snd) $ zip [0..] initState
   let rules = S.fromList $ map fst $ filter snd $ map parseRule $ drop 2 input
   putStrLn "Part 1:"

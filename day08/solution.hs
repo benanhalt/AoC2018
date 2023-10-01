@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, NamedFieldPuns, DeriveFoldable #-}
+{-# LANGUAGE ScopedTypeVariables, DeriveFoldable #-}
 
 import Control.Monad (guard)
 import Data.List
