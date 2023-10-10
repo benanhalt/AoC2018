@@ -14,6 +14,8 @@ let
 
   nixPackages = [
     ghc
+    pkgs.haskell-language-server
+    pkgs.ormolu
     haskellPackages.hindent
   ];
 in
